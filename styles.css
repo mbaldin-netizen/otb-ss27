@@ -171,6 +171,18 @@ h2 {
   font-size: 0.78rem;
 }
 
+.icon-button.round {
+  width: 42px;
+  border-radius: 999px;
+  background: var(--green);
+  color: #ffffff;
+}
+
+.icon-button.round span {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
 .view-tabs {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -912,7 +924,8 @@ select {
   font-weight: 850;
 }
 
-.floating-add-button {
+.floating-add-button,
+.floating-brand-add-button {
   position: fixed;
   right: 18px;
   bottom: calc(max(18px, env(safe-area-inset-bottom)) + 70px);
@@ -929,6 +942,10 @@ select {
   font-size: 2rem;
   font-weight: 700;
   line-height: 1;
+}
+
+.floating-brand-add-button {
+  bottom: max(18px, env(safe-area-inset-bottom));
 }
 
 .floating-export-button {
@@ -1018,6 +1035,7 @@ button:active {
   .brand-values {
     grid-template-columns: 1fr;
   }
+
 }
 
 @media (max-width: 520px) {
