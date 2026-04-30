@@ -11,7 +11,11 @@ exports.handler = async (event) => {
   }
 
   const { getStore } = await import("@netlify/blobs");
-  const store = getStore("otb-acquisti");
+  const store = getStore("otb-acquisti", {
+    siteID: process.env.SITE_ID,
+    token: process.env.NETLIFY_BLOBS_TOKEN
+  });
+
   const key = "ss27";
 
   if (event.httpMethod === "GET") {
