@@ -10,12 +10,28 @@ exports.handler = async (event) => {
     return { statusCode: 204, headers, body: "" };
   }
 
+  const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
+  const token = process.env.NETLIFY_BLOBS_TOKEN;
+
+  if (!siteID || !token) {
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        error: "Configurazione Netlify Blobs incompleta",
+        missing: {
+          NETLIFY_SITE_ID: !siteID,
+          NETLIFY_BLOBS_TOKEN: !token
+        }
+      })
+    };
+  }
+
   const { getStore } = await import("@netlify/blobs");
   const store = getStore("otb-acquisti", {
-    siteID: process.env.NETLIFY_SITE_ID,
-    token: process.env.NETLIFY_BLOBS_TOKEN
+    siteID,
+    token
   });
-
   const key = "ss27";
 
   if (event.httpMethod === "GET") {
