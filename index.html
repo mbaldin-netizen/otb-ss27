@@ -30,9 +30,14 @@
             <p class="eyebrow">OTB acquisti</p>
             <h1 id="viewTitle">OTB totale</h1>
           </div>
-          <button class="icon-button wide" id="manageBrandsButton" type="button" title="Gestisci brand" aria-label="Gestisci brand">
-            <span aria-hidden="true">Brand</span>
-          </button>
+          <div class="header-actions">
+            <button class="icon-button wide" id="manualRefreshButton" type="button" title="Aggiorna dati" aria-label="Aggiorna dati">
+              <span aria-hidden="true">Aggiorna</span>
+            </button>
+            <button class="icon-button wide" id="manageBrandsButton" type="button" title="Gestisci brand" aria-label="Gestisci brand">
+              <span aria-hidden="true">Brand</span>
+            </button>
+          </div>
         </div>
 
         <nav class="view-tabs" id="viewTabs" aria-label="Visualizzazioni OTB">
@@ -51,28 +56,14 @@
         </div>
 
         <div class="balance-grid" id="balanceGrid">
-          <article>
-            <span>OTB</span>
-            <strong id="budgetAmount">&euro;0,00</strong>
-          </article>
-          <article>
-            <span>Ordinato</span>
-            <strong id="spentAmount">&euro;0,00</strong>
-          </article>
-          <article>
-            <span>Disponibile</span>
-            <strong id="remainingAmount">&euro;0,00</strong>
-          </article>
-          <article>
-            <span id="extraMetricLabel">Previsione</span>
-            <strong id="extraMetricAmount">&euro;0,00</strong>
-          </article>
+          <article><span>OTB</span><strong id="budgetAmount">&euro;0,00</strong></article>
+          <article><span>Ordinato</span><strong id="spentAmount">&euro;0,00</strong></article>
+          <article><span>Disponibile</span><strong id="remainingAmount">&euro;0,00</strong></article>
+          <article><span id="extraMetricLabel">Previsione</span><strong id="extraMetricAmount">&euro;0,00</strong></article>
         </div>
 
         <div class="progress-wrap" id="progressWrap" aria-label="Avanzamento OTB">
-          <div class="progress-track">
-            <div class="progress-fill" id="budgetProgress"></div>
-          </div>
+          <div class="progress-track"><div class="progress-fill" id="budgetProgress"></div></div>
           <p id="budgetStatus">Imposta un OTB per iniziare.</p>
         </div>
       </section>
@@ -88,27 +79,9 @@
             <input id="brandInput" autocomplete="off" placeholder="Nuovo brand">
           </div>
           <div class="forecast-create-grid">
-            <label>
-              <span>Susi Store</span>
-              <span class="money-input compact">
-                <span>&euro;</span>
-                <input id="brandForecastStoreInput" inputmode="decimal" autocomplete="off" placeholder="Previsto">
-              </span>
-            </label>
-            <label>
-              <span>Susi Hub</span>
-              <span class="money-input compact">
-                <span>&euro;</span>
-                <input id="brandForecastHubInput" inputmode="decimal" autocomplete="off" placeholder="Previsto">
-              </span>
-            </label>
-            <label>
-              <span>Estero</span>
-              <span class="money-input compact">
-                <span>&euro;</span>
-                <input id="brandForecastEsteroInput" inputmode="decimal" autocomplete="off" placeholder="Previsto">
-              </span>
-            </label>
+            <label><span>Susi Store</span><span class="money-input compact"><span>&euro;</span><input id="brandForecastStoreInput" inputmode="decimal" autocomplete="off" placeholder="Previsto"></span></label>
+            <label><span>Susi Hub</span><span class="money-input compact"><span>&euro;</span><input id="brandForecastHubInput" inputmode="decimal" autocomplete="off" placeholder="Previsto"></span></label>
+            <label><span>Estero</span><span class="money-input compact"><span>&euro;</span><input id="brandForecastEsteroInput" inputmode="decimal" autocomplete="off" placeholder="Previsto"></span></label>
           </div>
           <button class="text-button" type="submit">Aggiungi</button>
         </form>
@@ -116,9 +89,7 @@
       </section>
 
       <section class="total-panel" id="totalPanel" aria-label="Riepilogo delle aree">
-        <div class="section-title">
-          <h2>Riepilogo aree</h2>
-        </div>
+        <div class="section-title"><h2>Riepilogo aree</h2></div>
         <div class="chart-panel" aria-label="Distribuzione OTB negozi">
           <div class="chart-toolbar">
             <h3>Incidenza negozi</h3>
@@ -129,10 +100,7 @@
           </div>
           <div class="donut-layout">
             <div class="donut-chart" id="donutChart">
-              <div class="donut-hole">
-                <span id="donutLabel">Previsto</span>
-                <strong id="donutTotal">&euro;0,00</strong>
-              </div>
+              <div class="donut-hole"><span id="donutLabel">Previsto</span><strong id="donutTotal">&euro;0,00</strong></div>
             </div>
             <div class="donut-legend" id="donutLegend"></div>
           </div>
@@ -150,22 +118,16 @@
             <label for="purchaseName">Ordine</label>
             <input id="purchaseName" autocomplete="off" placeholder="Es. ordine PE26, riassortimento, campionario" required>
           </div>
-
           <div class="form-row">
             <div class="field">
               <label for="purchaseAmount">Importo</label>
-              <div class="money-input compact">
-                <span>&euro;</span>
-                <input id="purchaseAmount" inputmode="decimal" autocomplete="off" placeholder="0,00" required>
-              </div>
+              <div class="money-input compact"><span>&euro;</span><input id="purchaseAmount" inputmode="decimal" autocomplete="off" placeholder="0,00" required></div>
             </div>
-
             <div class="field">
               <label for="purchaseBrand">Brand</label>
               <select id="purchaseBrand"></select>
             </div>
           </div>
-
           <button class="primary-button" type="submit">Aggiungi ordine</button>
         </form>
       </section>
@@ -193,15 +155,10 @@
     <template id="areaTemplate">
       <article class="area-card">
         <button class="area-card-button" type="button">
-          <div>
-            <strong class="area-title"></strong>
-            <p class="area-meta"></p>
-          </div>
+          <div><strong class="area-title"></strong><p class="area-meta"></p></div>
           <span class="area-remaining"></span>
         </button>
-        <div class="area-progress">
-          <div></div>
-        </div>
+        <div class="area-progress"><div></div></div>
       </article>
     </template>
 
