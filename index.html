@@ -27,12 +27,15 @@
       <section class="top-panel" aria-label="Riepilogo OTB">
         <div class="brand-row">
           <div>
-            <p class="eyebrow">OTB acquisti</p>
+            <p class="eyebrow">BUDGET</p>
             <h1 id="viewTitle">OTB totale</h1>
           </div>
           <div class="header-actions">
-            <button class="icon-button wide" id="manualRefreshButton" type="button" title="Aggiorna dati" aria-label="Aggiorna dati">
-              <span aria-hidden="true">Aggiorna</span>
+            <button class="icon-button round" id="manualRefreshButton" type="button" title="Aggiorna dati" aria-label="Aggiorna dati">
+              <span aria-hidden="true">&#8635;</span>
+            </button>
+            <button class="icon-button round" id="backFromBrandsButton" type="button" title="Indietro" aria-label="Indietro" hidden>
+              <span aria-hidden="true">&#8592;</span>
             </button>
             <button class="icon-button wide" id="manageBrandsButton" type="button" title="Gestisci brand" aria-label="Gestisci brand">
               <span aria-hidden="true">Brand</span>
@@ -56,32 +59,63 @@
         </div>
 
         <div class="balance-grid" id="balanceGrid">
-          <article><span>OTB</span><strong id="budgetAmount">&euro;0,00</strong></article>
-          <article><span>Ordinato</span><strong id="spentAmount">&euro;0,00</strong></article>
-          <article><span>Disponibile</span><strong id="remainingAmount">&euro;0,00</strong></article>
-          <article><span id="extraMetricLabel">Previsione</span><strong id="extraMetricAmount">&euro;0,00</strong></article>
+          <article>
+            <span>OTB</span>
+            <strong id="budgetAmount">&euro;0,00</strong>
+          </article>
+          <article>
+            <span>Ordinato</span>
+            <strong id="spentAmount">&euro;0,00</strong>
+          </article>
+          <article>
+            <span>Disponibile</span>
+            <strong id="remainingAmount">&euro;0,00</strong>
+          </article>
+          <article>
+            <span id="extraMetricLabel">Previsione</span>
+            <strong id="extraMetricAmount">&euro;0,00</strong>
+          </article>
         </div>
 
         <div class="progress-wrap" id="progressWrap" aria-label="Avanzamento OTB">
-          <div class="progress-track"><div class="progress-fill" id="budgetProgress"></div></div>
+          <div class="progress-track">
+            <div class="progress-fill" id="budgetProgress"></div>
+          </div>
           <p id="budgetStatus">Imposta un OTB per iniziare.</p>
         </div>
       </section>
 
       <section class="brand-manager-panel" id="brandManagerPanel" aria-label="Gestione brand">
         <div class="section-title">
-          <h2>Gestione brand</h2>
-          <button class="text-button" id="closeBrandManagerButton" type="button">Torna agli OTB</button>
+          <h2>GESTIONE BRAND</h2>
         </div>
-        <form class="brand-form" id="brandForm">
+        <form class="brand-form" id="brandForm" hidden>
           <div class="field">
             <label for="brandInput">Brand</label>
             <input id="brandInput" autocomplete="off" placeholder="Nuovo brand">
           </div>
           <div class="forecast-create-grid">
-            <label><span>Susi Store</span><span class="money-input compact"><span>&euro;</span><input id="brandForecastStoreInput" inputmode="decimal" autocomplete="off" placeholder="Previsto"></span></label>
-            <label><span>Susi Hub</span><span class="money-input compact"><span>&euro;</span><input id="brandForecastHubInput" inputmode="decimal" autocomplete="off" placeholder="Previsto"></span></label>
-            <label><span>Estero</span><span class="money-input compact"><span>&euro;</span><input id="brandForecastEsteroInput" inputmode="decimal" autocomplete="off" placeholder="Previsto"></span></label>
+            <label>
+              <span>Susi Store</span>
+              <span class="money-input compact">
+                <span>&euro;</span>
+                <input id="brandForecastStoreInput" inputmode="decimal" autocomplete="off" placeholder="Previsto">
+              </span>
+            </label>
+            <label>
+              <span>Susi Hub</span>
+              <span class="money-input compact">
+                <span>&euro;</span>
+                <input id="brandForecastHubInput" inputmode="decimal" autocomplete="off" placeholder="Previsto">
+              </span>
+            </label>
+            <label>
+              <span>Estero</span>
+              <span class="money-input compact">
+                <span>&euro;</span>
+                <input id="brandForecastEsteroInput" inputmode="decimal" autocomplete="off" placeholder="Previsto">
+              </span>
+            </label>
           </div>
           <button class="text-button" type="submit">Aggiungi</button>
         </form>
@@ -89,7 +123,9 @@
       </section>
 
       <section class="total-panel" id="totalPanel" aria-label="Riepilogo delle aree">
-        <div class="section-title"><h2>Riepilogo aree</h2></div>
+        <div class="section-title">
+          <h2>Riepilogo aree</h2>
+        </div>
         <div class="chart-panel" aria-label="Distribuzione OTB negozi">
           <div class="chart-toolbar">
             <h3>Incidenza negozi</h3>
@@ -100,7 +136,10 @@
           </div>
           <div class="donut-layout">
             <div class="donut-chart" id="donutChart">
-              <div class="donut-hole"><span id="donutLabel">Previsto</span><strong id="donutTotal">&euro;0,00</strong></div>
+              <div class="donut-hole">
+                <span id="donutLabel">Previsto</span>
+                <strong id="donutTotal">&euro;0,00</strong>
+              </div>
             </div>
             <div class="donut-legend" id="donutLegend"></div>
           </div>
@@ -118,16 +157,22 @@
             <label for="purchaseName">Ordine</label>
             <input id="purchaseName" autocomplete="off" placeholder="Es. ordine PE26, riassortimento, campionario" required>
           </div>
+
           <div class="form-row">
             <div class="field">
               <label for="purchaseAmount">Importo</label>
-              <div class="money-input compact"><span>&euro;</span><input id="purchaseAmount" inputmode="decimal" autocomplete="off" placeholder="0,00" required></div>
+              <div class="money-input compact">
+                <span>&euro;</span>
+                <input id="purchaseAmount" inputmode="decimal" autocomplete="off" placeholder="0,00" required>
+              </div>
             </div>
+
             <div class="field">
               <label for="purchaseBrand">Brand</label>
               <select id="purchaseBrand"></select>
             </div>
           </div>
+
           <button class="primary-button" type="submit">Aggiungi ordine</button>
         </form>
       </section>
@@ -149,16 +194,22 @@
     </main>
 
     <button class="floating-export-button" id="floatingExportButton" type="button" aria-label="Esporta CSV" hidden>CSV</button>
+    <button class="floating-brand-add-button" id="openBrandFormButton" type="button" aria-label="Aggiungi brand" hidden>+</button>
     <button class="floating-add-button" id="openOrderFormButton" type="button" aria-label="Aggiungi ordine" hidden>+</button>
     <div class="save-toast" id="saveToast" role="status" aria-live="polite" hidden>Salvato</div>
 
     <template id="areaTemplate">
       <article class="area-card">
         <button class="area-card-button" type="button">
-          <div><strong class="area-title"></strong><p class="area-meta"></p></div>
+          <div>
+            <strong class="area-title"></strong>
+            <p class="area-meta"></p>
+          </div>
           <span class="area-remaining"></span>
         </button>
-        <div class="area-progress"><div></div></div>
+        <div class="area-progress">
+          <div></div>
+        </div>
       </article>
     </template>
 
