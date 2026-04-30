@@ -114,8 +114,6 @@ manualRefreshButton.addEventListener("click", async () => {
   const didSync = await syncFromRemote(true);
   if (!didSync) showSaveFeedback("Aggiornamento non riuscito");
   manualRefreshButton.querySelector("span").textContent = String.fromCharCode(8635);
-  manualRefreshButton.querySelector("span").textContent = "↻";
-  manualRefreshButton.querySelector("span").textContent = String.fromCharCode(8635);
   manualRefreshButton.disabled = false;
 });
 
