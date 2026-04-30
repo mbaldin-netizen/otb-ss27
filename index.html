@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#166a5b">
+    <title>OTB Acquisti</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="top-panel" aria-label="Riepilogo OTB">
+        <div class="brand-row">
+          <div>
+            <p class="eyebrow">OTB acquisti</p>
+            <h1 id="viewTitle">OTB totale</h1>
+          </div>
+          <button class="icon-button wide" id="manageBrandsButton" type="button" title="Gestisci brand" aria-label="Gestisci brand">
+            <span aria-hidden="true">Brand</span>
+          </button>
+        </div>
+
+        <nav class="view-tabs" id="viewTabs" aria-label="Visualizzazioni OTB">
+          <button class="tab-button active" type="button" data-view="total">Totale</button>
+          <button class="tab-button" type="button" data-view="store">Susi Store</button>
+          <button class="tab-button" type="button" data-view="hub">Susi Hub</button>
+          <button class="tab-button" type="button" data-view="estero">Estero</button>
+        </nav>
+
+        <div class="budget-editor" id="budgetEditor">
+          <label for="budgetInput">OTB della vista</label>
+          <div class="money-input">
+            <span>&euro;</span>
+            <input id="budgetInput" inputmode="decimal" autocomplete="off" placeholder="0,00">
+          </div>
+        </div>
+
+        <div class="balance-grid" id="balanceGrid">
+          <article>
+            <span>OTB</span>
+            <strong id="budgetAmount">&euro;0,00</strong>
+          </article>
+          <article>
+            <span>Ordinato</span>
+            <strong id="spentAmount">&euro;0,00</strong>
+          </article>
+          <article>
+            <span>Disponibile</span>
+            <strong id="remainingAmount">&euro;0,00</strong>
+          </article>
+          <article>
+            <span id="extraMetricLabel">Previsione</span>
+            <strong id="extraMetricAmount">&euro;0,00</strong>
+          </article>
+        </div>
+
+        <div class="progress-wrap" id="progressWrap" aria-label="Avanzamento OTB">
+          <div class="progress-track">
+            <div class="progress-fill" id="budgetProgress"></div>
+          </div>
+          <p id="budgetStatus">Imposta un OTB per iniziare.</p>
+        </div>
+      </section>
+
+      <section class="brand-manager-panel" id="brandManagerPanel" aria-label="Gestione brand">
+        <div class="section-title">
+          <h2>Gestione brand</h2>
+          <button class="text-button" id="closeBrandManagerButton" type="button">Torna agli OTB</button>
+        </div>
+        <form class="brand-form" id="brandForm">
+          <div class="field">
+            <label for="brandInput">Brand</label>
+            <input id="brandInput" autocomplete="off" placeholder="Nuovo brand">
+          </div>
+          <div class="forecast-create-grid">
+            <label>
+              <span>Susi Store</span>
+              <span class="money-input compact">
+                <span>&euro;</span>
+                <input id="brandForecastStoreInput" inputmode="decimal" autocomplete="off" placeholder="Previsto">
+              </span>
+            </label>
+            <label>
+              <span>Susi Hub</span>
+              <span class="money-input compact">
+                <span>&euro;</span>
+                <input id="brandForecastHubInput" inputmode="decimal" autocomplete="off" placeholder="Previsto">
+              </span>
+            </label>
+            <label>
+              <span>Estero</span>
+              <span class="money-input compact">
+                <span>&euro;</span>
+                <input id="brandForecastEsteroInput" inputmode="decimal" autocomplete="off" placeholder="Previsto">
+              </span>
+            </label>
+          </div>
+          <button class="text-button" type="submit">Aggiungi</button>
+        </form>
+        <div class="manager-brand-list" id="managerBrandList"></div>
+      </section>
+
+      <section class="total-panel" id="totalPanel" aria-label="Riepilogo delle aree">
+        <div class="section-title">
+          <h2>Riepilogo aree</h2>
+        </div>
+        <div class="chart-panel" aria-label="Distribuzione OTB negozi">
+          <div class="chart-toolbar">
+            <h3>Incidenza negozi</h3>
+            <div class="segmented-control" aria-label="Metrica grafico">
+              <button class="chart-mode-button active" type="button" data-chart-mode="forecast">Previsto</button>
+              <button class="chart-mode-button" type="button" data-chart-mode="ordered">Ordinato</button>
+            </div>
+          </div>
+          <div class="donut-layout">
+            <div class="donut-chart" id="donutChart">
+              <div class="donut-hole">
+                <span id="donutLabel">Previsto</span>
+                <strong id="donutTotal">&euro;0,00</strong>
+              </div>
+            </div>
+            <div class="donut-legend" id="donutLegend"></div>
+          </div>
+        </div>
+        <div class="area-list" id="areaList"></div>
+      </section>
+
+      <section class="entry-panel" id="entryPanel" aria-label="Inserisci ordine" hidden>
+        <div class="section-title">
+          <h2>Nuovo ordine</h2>
+          <button class="text-button" id="closeOrderFormButton" type="button">Chiudi</button>
+        </div>
+        <form id="purchaseForm">
+          <div class="field">
+            <label for="purchaseName">Ordine</label>
+            <input id="purchaseName" autocomplete="off" placeholder="Es. ordine PE26, riassortimento, campionario" required>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="purchaseAmount">Importo</label>
+              <div class="money-input compact">
+                <span>&euro;</span>
+                <input id="purchaseAmount" inputmode="decimal" autocomplete="off" placeholder="0,00" required>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="purchaseBrand">Brand</label>
+              <select id="purchaseBrand"></select>
+            </div>
+          </div>
+
+          <button class="primary-button" type="submit">Aggiungi ordine</button>
+        </form>
+      </section>
+
+      <section class="insights-panel" aria-label="Statistiche">
+        <div class="section-title">
+          <h2 id="insightsTitle">Brand acquistati</h2>
+          <select id="filterBrand" aria-label="Filtra per brand"></select>
+        </div>
+        <div class="brand-list" id="brandList"></div>
+      </section>
+
+      <section class="history-panel" aria-label="Esportazione ordini" hidden>
+        <div class="section-title">
+          <h2 id="historyTitle">Esportazione</h2>
+          <button class="text-button" id="exportButton" type="button">Esporta CSV</button>
+        </div>
+      </section>
+    </main>
+
+    <button class="floating-export-button" id="floatingExportButton" type="button" aria-label="Esporta CSV">CSV</button>
+    <button class="floating-add-button" id="openOrderFormButton" type="button" aria-label="Aggiungi ordine">+</button>
+    <div class="save-toast" id="saveToast" role="status" aria-live="polite" hidden>Salvato</div>
+
+    <template id="areaTemplate">
+      <article class="area-card">
+        <button class="area-card-button" type="button">
+          <div>
+            <strong class="area-title"></strong>
+            <p class="area-meta"></p>
+          </div>
+          <span class="area-remaining"></span>
+        </button>
+        <div class="area-progress">
+          <div></div>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
