@@ -1,7 +1,6 @@
 const storageKey = "budget-acquisti-v6";
 const accessStorageKey = "otb-access-password";
 const syncEndpoint = "/.netlify/functions/data";
-const syncIntervalMs = 30000;
 const previousAreaForecastStorageKey = "budget-acquisti-v5";
 const areaForecastStorageKey = "budget-acquisti-v4";
 const forecastStorageKey = "budget-acquisti-v3";
@@ -73,6 +72,7 @@ const extraMetricLabel = document.querySelector("#extraMetricLabel");
 const extraMetricAmount = document.querySelector("#extraMetricAmount");
 const budgetProgress = document.querySelector("#budgetProgress");
 const budgetStatus = document.querySelector("#budgetStatus");
+const manualRefreshButton = document.querySelector("#manualRefreshButton");
 const manageBrandsButton = document.querySelector("#manageBrandsButton");
 const closeBrandManagerButton = document.querySelector("#closeBrandManagerButton");
 const exportButton = document.querySelector("#exportButton");
@@ -84,12 +84,6 @@ const saveToast = document.querySelector("#saveToast");
 let chartMode = "forecast";
 
 startApp();
-window.setInterval(() => {
-  if (!isAccessGranted()) return;
-  if (!document.hidden && !isBrandManagerOpen && !isOrderFormOpen) {
-    syncFromRemote();
-  }
-}, syncIntervalMs);
 
 accessForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -108,6 +102,16 @@ accessForm.addEventListener("submit", async (event) => {
   sessionStorage.setItem(accessStorageKey, accessPassword);
   unlockApp();
   await syncFromRemote();
+});
+
+manualRefreshButton.addEventListener("click", async () => {
+  if (!isAccessGranted() || isBrandManagerOpen || isOrderFormOpen) return;
+
+  manualRefreshButton.disabled = true;
+  manualRefreshButton.querySelector("span").textContent = "Carico";
+  await syncFromRemote(true);
+  manualRefreshButton.querySelector("span").textContent = "Aggiorna";
+  manualRefreshButton.disabled = false;
 });
 
 tabButtons.forEach((button) => {
@@ -281,6 +285,7 @@ function renderPanels() {
   balanceGrid.hidden = isBrandManagerOpen;
   progressWrap.hidden = isBrandManagerOpen;
   budgetEditor.hidden = isTotal || isBrandManagerOpen;
+  manualRefreshButton.hidden = isBrandManagerOpen;
   brandManagerPanel.hidden = !isBrandManagerOpen;
   totalPanel.hidden = !isTotal || isBrandManagerOpen;
   entryPanel.hidden = isTotal || isBrandManagerOpen || !isOrderFormOpen;
@@ -878,7 +883,7 @@ async function validateAccess() {
   }
 }
 
-async function syncFromRemote() {
+async function syncFromRemote(showFeedback = false) {
   if (isSyncingRemote || location.protocol === "file:" || !accessPassword) return;
 
   isSyncingRemote = true;
@@ -903,6 +908,7 @@ async function syncFromRemote() {
     localStorage.setItem(storageKey, JSON.stringify(state));
     lastRemoteSignature = nextSignature;
     render();
+    if (showFeedback) showSaveFeedback();
   } catch {
     // Offline or local preview: keep using local data.
   } finally {
