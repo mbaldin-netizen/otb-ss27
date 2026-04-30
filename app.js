@@ -111,8 +111,11 @@ manualRefreshButton.addEventListener("click", async () => {
 
   manualRefreshButton.disabled = true;
   manualRefreshButton.querySelector("span").textContent = "...";
-  await syncFromRemote(true);
-  manualRefreshButton.querySelector("span").textContent = "â†»";
+  const didSync = await syncFromRemote(true);
+  if (!didSync) showSaveFeedback("Aggiornamento non riuscito");
+  manualRefreshButton.querySelector("span").textContent = String.fromCharCode(8635);
+  manualRefreshButton.querySelector("span").textContent = "↻";
+  manualRefreshButton.querySelector("span").textContent = String.fromCharCode(8635);
   manualRefreshButton.disabled = false;
 });
 
@@ -858,14 +861,11 @@ function loadState() {
 function saveState(showFeedback = false) {
   localStorage.setItem(storageKey, JSON.stringify(state));
   lastRemoteSignature = JSON.stringify(state);
-  syncToRemote();
-  if (showFeedback) {
-    showSaveFeedback();
-  }
+  syncToRemote(showFeedback);
 }
 
 async function startApp() {
-  if (location.protocol === "file:") {
+  if (isLocalPreview()) {
     unlockApp();
     syncFromRemote();
     return;
@@ -894,7 +894,16 @@ function unlockApp() {
 }
 
 function isAccessGranted() {
-  return location.protocol === "file:" || Boolean(accessPassword);
+  return isLocalPreview() || Boolean(accessPassword);
+}
+
+function isLocalPreview() {
+  return location.protocol === "file:"
+    || location.hostname === "localhost"
+    || location.hostname === "127.0.0.1"
+    || location.hostname.startsWith("192.168.")
+    || location.hostname.startsWith("10.")
+    || /^172\.(1[6-9]|2\d|3[0-1])\./.test(location.hostname);
 }
 
 function getAccessHeaders(extraHeaders = {}) {
@@ -905,10 +914,10 @@ function getAccessHeaders(extraHeaders = {}) {
 }
 
 async function validateAccess() {
-  if (location.protocol === "file:") return true;
+  if (isLocalPreview()) return true;
 
   try {
-    const response = await fetch(syncEndpoint, {
+    const response = await fetchWithTimeout(syncEndpoint, {
       cache: "no-store",
       headers: getAccessHeaders()
     });
@@ -919,49 +928,81 @@ async function validateAccess() {
 }
 
 async function syncFromRemote(showFeedback = false) {
-  if (isSyncingRemote || location.protocol === "file:" || !accessPassword) return;
+  if (isSyncingRemote || isLocalPreview() || !accessPassword) return false;
 
   isSyncingRemote = true;
   try {
-    const response = await fetch(syncEndpoint, {
+    const response = await fetchWithTimeout(syncEndpoint, {
       cache: "no-store",
       headers: getAccessHeaders()
     });
-    if (!response.ok) return;
+    if (!response.ok) return false;
 
     const payload = await response.json();
     if (!payload.data) {
       await syncToRemote();
-      return;
+      return true;
     }
 
     const normalized = normalizeLoadedState(payload.data);
     const nextSignature = JSON.stringify(normalized);
-    if (nextSignature === lastRemoteSignature) return;
+    if (nextSignature === lastRemoteSignature) {
+      if (showFeedback) showSaveFeedback("Aggiornato");
+      return true;
+    }
 
     applyLoadedState(normalized);
     localStorage.setItem(storageKey, JSON.stringify(state));
     lastRemoteSignature = nextSignature;
     render();
-    if (showFeedback) showSaveFeedback();
+    if (showFeedback) showSaveFeedback("Aggiornato");
+    return true;
   } catch {
     // Offline or local preview: keep using local data.
+    return false;
   } finally {
     isSyncingRemote = false;
   }
 }
 
-async function syncToRemote() {
-  if (location.protocol === "file:" || !accessPassword) return;
+async function syncToRemote(showFeedback = false) {
+  if (isLocalPreview() || !accessPassword) {
+    if (showFeedback) showSaveFeedback("Salvato sul dispositivo");
+    return false;
+  }
 
   try {
-    await fetch(syncEndpoint, {
+    const response = await fetchWithTimeout(syncEndpoint, {
       method: "POST",
       headers: getAccessHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(state)
     });
+
+    if (!response.ok) {
+      if (showFeedback) showSaveFeedback("Non salvato online");
+      return false;
+    }
+
+    if (showFeedback) showSaveFeedback("Salvato online");
+    return true;
   } catch {
     // If the remote endpoint is not available yet, local storage remains the source.
+    if (showFeedback) showSaveFeedback("Non salvato online");
+    return false;
+  }
+}
+
+async function fetchWithTimeout(resource, options = {}, timeoutMs = 8000) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(resource, {
+      ...options,
+      signal: controller.signal
+    });
+  } finally {
+    window.clearTimeout(timeout);
   }
 }
 
@@ -989,8 +1030,9 @@ function applyLoadedState(nextState) {
   });
 }
 
-function showSaveFeedback() {
+function showSaveFeedback(message = "Salvato") {
   window.clearTimeout(saveToastTimer);
+  saveToast.textContent = message;
   saveToast.hidden = false;
   saveToastTimer = window.setTimeout(() => {
     saveToast.hidden = true;
