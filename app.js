@@ -1,6 +1,6 @@
 const storageKey = "budget-acquisti-v6";
 const accessStorageKey = "otb-access-password";
-const syncEndpoint = "/.netlify/functions/data";
+const syncEndpoint = "/api/data";
 const previousAreaForecastStorageKey = "budget-acquisti-v5";
 const areaForecastStorageKey = "budget-acquisti-v4";
 const forecastStorageKey = "budget-acquisti-v3";
