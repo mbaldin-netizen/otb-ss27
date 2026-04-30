@@ -40,6 +40,43 @@ select {
   padding: max(18px, env(safe-area-inset-top)) 16px max(92px, env(safe-area-inset-bottom));
 }
 
+.access-panel {
+  display: grid;
+  min-height: 100vh;
+  padding: 22px;
+  place-items: center;
+}
+
+.access-panel[hidden] {
+  display: none;
+}
+
+.access-card {
+  width: min(100%, 420px);
+  padding: 22px;
+  border: 1px solid rgba(224, 219, 207, 0.92);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: var(--shadow);
+}
+
+.access-card h1 {
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+
+.access-card p {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-weight: 650;
+}
+
+.access-error {
+  margin: 12px 0 0;
+  color: var(--coral);
+  font-size: 0.9rem;
+}
+
 .top-panel,
 .brand-manager-panel,
 .total-panel,
@@ -975,7 +1012,6 @@ button:active {
   .brand-values {
     grid-template-columns: 1fr;
   }
-
 }
 
 @media (max-width: 520px) {
