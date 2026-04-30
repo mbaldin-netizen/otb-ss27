@@ -1,5 +1,3 @@
-const { getStore } = require("@netlify/blobs");
-
 const headers = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "Content-Type",
@@ -12,6 +10,7 @@ exports.handler = async (event) => {
     return { statusCode: 204, headers, body: "" };
   }
 
+  const { getStore } = await import("@netlify/blobs");
   const store = getStore("otb-acquisti");
   const key = "ss27";
 
