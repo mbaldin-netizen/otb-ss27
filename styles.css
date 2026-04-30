@@ -116,6 +116,12 @@ select {
   gap: 12px;
 }
 
+.header-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
 .eyebrow {
   margin: 0 0 4px;
   color: var(--green);
