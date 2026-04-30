@@ -1,6 +1,6 @@
 const headers = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, X-OTB-Access",
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
   "Content-Type": "application/json"
 };
@@ -12,6 +12,23 @@ exports.handler = async (event) => {
 
   const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
   const token = process.env.NETLIFY_BLOBS_TOKEN;
+  const appPassword = process.env.OTB_APP_PASSWORD;
+
+  if (!appPassword) {
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: "Password app non configurata" })
+    };
+  }
+
+  if (event.headers["x-otb-access"] !== appPassword) {
+    return {
+      statusCode: 401,
+      headers,
+      body: JSON.stringify({ error: "Accesso non autorizzato" })
+    };
+  }
 
   if (!siteID || !token) {
     return {
@@ -29,10 +46,10 @@ exports.handler = async (event) => {
 
   const { getStore } = await import("@netlify/blobs");
   const store = getStore({
-  name: "otb-acquisti",
-  siteID,
-  token
-});
+    name: "otb-acquisti",
+    siteID,
+    token
+  });
   const key = "ss27";
 
   if (event.httpMethod === "GET") {
