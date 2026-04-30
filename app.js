@@ -1,4 +1,5 @@
 const storageKey = "budget-acquisti-v6";
+const accessStorageKey = "otb-access-password";
 const syncEndpoint = "/.netlify/functions/data";
 const syncIntervalMs = 30000;
 const previousAreaForecastStorageKey = "budget-acquisti-v5";
@@ -17,6 +18,7 @@ const defaultBrands = ["Brand da definire"];
 const brandColors = ["#166a5b", "#3f6f9f", "#d7634f", "#7a5fbb", "#d8a438", "#6f756f", "#2f7d82", "#9b5a3c"];
 
 const state = loadState();
+let accessPassword = sessionStorage.getItem(accessStorageKey) || "";
 let lastRemoteSignature = JSON.stringify(state);
 let isSyncingRemote = false;
 let activeView = "total";
@@ -27,6 +29,11 @@ const visibleOrderDetails = {};
 let saveToastTimer;
 
 const viewTitle = document.querySelector("#viewTitle");
+const accessPanel = document.querySelector("#accessPanel");
+const accessForm = document.querySelector("#accessForm");
+const accessPasswordInput = document.querySelector("#accessPassword");
+const accessError = document.querySelector("#accessError");
+const appShell = document.querySelector("#appShell");
 const budgetEditor = document.querySelector("#budgetEditor");
 const budgetInput = document.querySelector("#budgetInput");
 const viewTabs = document.querySelector("#viewTabs");
@@ -76,13 +83,32 @@ const areaTemplate = document.querySelector("#areaTemplate");
 const saveToast = document.querySelector("#saveToast");
 let chartMode = "forecast";
 
-render();
-syncFromRemote();
+startApp();
 window.setInterval(() => {
+  if (!isAccessGranted()) return;
   if (!document.hidden && !isBrandManagerOpen && !isOrderFormOpen) {
     syncFromRemote();
   }
 }, syncIntervalMs);
+
+accessForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  accessError.hidden = true;
+  accessPassword = accessPasswordInput.value.trim();
+  const isValid = await validateAccess();
+
+  if (!isValid) {
+    accessPassword = "";
+    sessionStorage.removeItem(accessStorageKey);
+    accessError.hidden = false;
+    accessPasswordInput.select();
+    return;
+  }
+
+  sessionStorage.setItem(accessStorageKey, accessPassword);
+  unlockApp();
+  await syncFromRemote();
+});
 
 tabButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -799,12 +825,68 @@ function saveState(showFeedback = false) {
   }
 }
 
+async function startApp() {
+  if (location.protocol === "file:") {
+    unlockApp();
+    syncFromRemote();
+    return;
+  }
+
+  if (accessPassword && await validateAccess()) {
+    unlockApp();
+    await syncFromRemote();
+    return;
+  }
+
+  sessionStorage.removeItem(accessStorageKey);
+  accessPassword = "";
+  appShell.hidden = true;
+  accessPanel.hidden = false;
+  accessPasswordInput.focus();
+}
+
+function unlockApp() {
+  accessPanel.hidden = true;
+  appShell.hidden = false;
+  floatingExportButton.hidden = false;
+  openOrderFormButton.hidden = false;
+  render();
+}
+
+function isAccessGranted() {
+  return location.protocol === "file:" || Boolean(accessPassword);
+}
+
+function getAccessHeaders(extraHeaders = {}) {
+  return {
+    ...extraHeaders,
+    "X-OTB-Access": accessPassword
+  };
+}
+
+async function validateAccess() {
+  if (location.protocol === "file:") return true;
+
+  try {
+    const response = await fetch(syncEndpoint, {
+      cache: "no-store",
+      headers: getAccessHeaders()
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 async function syncFromRemote() {
-  if (isSyncingRemote || location.protocol === "file:") return;
+  if (isSyncingRemote || location.protocol === "file:" || !accessPassword) return;
 
   isSyncingRemote = true;
   try {
-    const response = await fetch(syncEndpoint, { cache: "no-store" });
+    const response = await fetch(syncEndpoint, {
+      cache: "no-store",
+      headers: getAccessHeaders()
+    });
     if (!response.ok) return;
 
     const payload = await response.json();
@@ -829,12 +911,12 @@ async function syncFromRemote() {
 }
 
 async function syncToRemote() {
-  if (location.protocol === "file:") return;
+  if (location.protocol === "file:" || !accessPassword) return;
 
   try {
     await fetch(syncEndpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAccessHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(state)
     });
   } catch {
