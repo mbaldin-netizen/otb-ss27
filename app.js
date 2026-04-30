@@ -8,9 +8,9 @@ const previousStorageKey = "budget-acquisti-v2";
 const legacyStorageKey = "budget-acquisti-v1";
 
 const areas = [
-  { id: "store", label: "OTB Susi Store", shortLabel: "Susi Store", color: "#166a5b" },
-  { id: "hub", label: "OTB Susi Hub", shortLabel: "Susi Hub", color: "#3f6f9f" },
-  { id: "estero", label: "OTB Estero", shortLabel: "Estero", color: "#d8a438" }
+  { id: "store", label: "SUSI STORE", shortLabel: "Susi Store", color: "#166a5b" },
+  { id: "hub", label: "SUSI HUB", shortLabel: "Susi Hub", color: "#3f6f9f" },
+  { id: "estero", label: "ESTERO", shortLabel: "Estero", color: "#d8a438" }
 ];
 
 const defaultBrands = ["Brand da definire"];
@@ -23,6 +23,7 @@ let isSyncingRemote = false;
 let activeView = "total";
 let isBrandManagerOpen = false;
 let isOrderFormOpen = false;
+let isBrandFormOpen = false;
 const visibleForecastFields = {};
 const visibleOrderDetails = {};
 let saveToastTimer;
@@ -48,6 +49,7 @@ const purchaseName = document.querySelector("#purchaseName");
 const purchaseAmount = document.querySelector("#purchaseAmount");
 const purchaseBrand = document.querySelector("#purchaseBrand");
 const openOrderFormButton = document.querySelector("#openOrderFormButton");
+const openBrandFormButton = document.querySelector("#openBrandFormButton");
 const closeOrderFormButton = document.querySelector("#closeOrderFormButton");
 const filterBrand = document.querySelector("#filterBrand");
 const brandForm = document.querySelector("#brandForm");
@@ -74,7 +76,7 @@ const budgetProgress = document.querySelector("#budgetProgress");
 const budgetStatus = document.querySelector("#budgetStatus");
 const manualRefreshButton = document.querySelector("#manualRefreshButton");
 const manageBrandsButton = document.querySelector("#manageBrandsButton");
-const closeBrandManagerButton = document.querySelector("#closeBrandManagerButton");
+const backFromBrandsButton = document.querySelector("#backFromBrandsButton");
 const exportButton = document.querySelector("#exportButton");
 const floatingExportButton = document.querySelector("#floatingExportButton");
 const insightsTitle = document.querySelector("#insightsTitle");
@@ -108,9 +110,9 @@ manualRefreshButton.addEventListener("click", async () => {
   if (!isAccessGranted() || isBrandManagerOpen || isOrderFormOpen) return;
 
   manualRefreshButton.disabled = true;
-  manualRefreshButton.querySelector("span").textContent = "Carico";
+  manualRefreshButton.querySelector("span").textContent = "...";
   await syncFromRemote(true);
-  manualRefreshButton.querySelector("span").textContent = "Aggiorna";
+  manualRefreshButton.querySelector("span").textContent = "â†»";
   manualRefreshButton.disabled = false;
 });
 
@@ -148,7 +150,7 @@ purchaseForm.addEventListener("submit", (event) => {
   const amount = parseAmount(purchaseAmount.value);
   const name = purchaseName.value.trim();
 
-  if (!name || amount <= 0) {
+  if (!name || amount <= 0 || !purchaseBrand.value) {
     purchaseAmount.focus();
     return;
   }
@@ -162,7 +164,7 @@ purchaseForm.addEventListener("submit", (event) => {
   });
 
   purchaseForm.reset();
-  purchaseBrand.value = state.brands[0] || defaultBrands[0];
+  purchaseBrand.value = getAreaBrands(activeView)[0] || "";
   purchaseName.focus();
   saveState(true);
   isOrderFormOpen = false;
@@ -196,6 +198,7 @@ brandForm.addEventListener("submit", (event) => {
   });
   purchaseBrand.value = brand;
   filterBrand.value = "all";
+  isBrandFormOpen = false;
   saveState(true);
   render();
 });
@@ -206,17 +209,30 @@ filterBrand.addEventListener("change", () => {
 
 manageBrandsButton.addEventListener("click", () => {
   isBrandManagerOpen = true;
+  isBrandFormOpen = false;
+  render();
+});
+
+backFromBrandsButton.addEventListener("click", () => {
+  isBrandManagerOpen = false;
+  isBrandFormOpen = false;
+  render();
+});
+
+openBrandFormButton.addEventListener("click", () => {
+  if (!isBrandManagerOpen) return;
+  isBrandFormOpen = true;
   render();
   brandInput.focus();
 });
 
-closeBrandManagerButton.addEventListener("click", () => {
-  isBrandManagerOpen = false;
-  render();
-});
-
 openOrderFormButton.addEventListener("click", () => {
   if (activeView === "total" || isBrandManagerOpen) return;
+  if (!getAreaBrands(activeView).length) {
+    window.alert("Aggiungi prima un previsto per questo negozio nella gestione brand.");
+    return;
+  }
+
   isOrderFormOpen = true;
   render();
   purchaseName.focus();
@@ -280,17 +296,21 @@ function renderPanels() {
   const isTotal = activeView === "total";
   const area = getActiveArea();
 
-  viewTitle.textContent = isBrandManagerOpen ? "Gestione brand" : isTotal ? "OTB SS27" : area.label;
+  viewTitle.textContent = isBrandManagerOpen ? "GESTIONE BRAND" : isTotal ? "TOTALE" : area.label;
   viewTabs.hidden = isBrandManagerOpen;
   balanceGrid.hidden = isBrandManagerOpen;
   progressWrap.hidden = isBrandManagerOpen;
   budgetEditor.hidden = isTotal || isBrandManagerOpen;
   manualRefreshButton.hidden = isBrandManagerOpen;
+  backFromBrandsButton.hidden = !isBrandManagerOpen;
+  manageBrandsButton.hidden = isBrandManagerOpen;
   brandManagerPanel.hidden = !isBrandManagerOpen;
+  brandForm.hidden = !isBrandManagerOpen || !isBrandFormOpen;
   totalPanel.hidden = !isTotal || isBrandManagerOpen;
   entryPanel.hidden = isTotal || isBrandManagerOpen || !isOrderFormOpen;
   insightsPanel.hidden = isTotal || isBrandManagerOpen;
   openOrderFormButton.hidden = isTotal || isBrandManagerOpen || isOrderFormOpen;
+  openBrandFormButton.hidden = !isBrandManagerOpen || isBrandFormOpen;
   floatingExportButton.hidden = isBrandManagerOpen;
   insightsTitle.textContent = isTotal ? "Brand acquistati" : `Brand ${area.shortLabel}`;
   historyTitle.textContent = "Esportazione";
@@ -311,7 +331,7 @@ function renderSummary() {
 
   if (!summary.budget) {
     budgetStatus.textContent = activeView === "total"
-      ? "Imposta gli OTB nelle tre aree per vedere il totale."
+      ? "Imposta i valori nelle tre aree per vedere il totale."
       : "Imposta un OTB per questa area.";
   } else if (summary.remaining >= 0) {
     budgetStatus.textContent = `Disponibili ${formatCurrency(summary.remaining)}.`;
@@ -389,26 +409,30 @@ function renderDonutChart() {
 }
 
 function renderBrandMenus() {
-  const selectedPurchaseBrand = purchaseBrand.value || state.brands[0] || defaultBrands[0];
+  const areaBrands = activeView === "total" ? state.brands : getAreaBrands(activeView);
+  const selectedPurchaseBrand = purchaseBrand.value || areaBrands[0] || "";
   const selectedFilterBrand = filterBrand.value || "all";
   purchaseBrand.innerHTML = "";
   filterBrand.innerHTML = '<option value="all">Tutti i brand</option>';
 
   state.brands.forEach((brand) => {
     areas.forEach((area) => ensureBrandForecast(brand, area.id));
+  });
+
+  areaBrands.forEach((brand) => {
     purchaseBrand.add(new Option(brand, brand));
     filterBrand.add(new Option(brand, brand));
   });
 
-  purchaseBrand.value = state.brands.includes(selectedPurchaseBrand) ? selectedPurchaseBrand : state.brands[0];
-  filterBrand.value = selectedFilterBrand === "all" || state.brands.includes(selectedFilterBrand) ? selectedFilterBrand : "all";
+  purchaseBrand.value = areaBrands.includes(selectedPurchaseBrand) ? selectedPurchaseBrand : areaBrands[0] || "";
+  filterBrand.value = selectedFilterBrand === "all" || areaBrands.includes(selectedFilterBrand) ? selectedFilterBrand : "all";
 }
 
 function renderBrands() {
   brandList.innerHTML = "";
   const totals = getBrandTotals();
   const selectedBrand = filterBrand.value;
-  const visibleBrands = state.brands
+  const visibleBrands = getAreaBrands(activeView)
     .filter((brand) => selectedBrand === "all" || brand === selectedBrand)
     .map((brand) => [brand, totals[brand] || 0])
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "it"));
@@ -471,7 +495,7 @@ function renderBrands() {
     });
 
   if (!brandList.children.length) {
-    brandList.innerHTML = '<p class="empty-state">Aggiungi il primo brand della campagna.</p>';
+    brandList.innerHTML = '<p class="empty-state">Nessun brand collegato a questo negozio.</p>';
   }
 }
 
@@ -649,6 +673,16 @@ function getVisiblePurchases() {
     : enrichPurchases(activeView);
 
   return purchases.filter((purchase) => selectedBrand === "all" || purchase.brand === selectedBrand);
+}
+
+function getAreaBrands(areaId) {
+  if (areaId === "total") return state.brands;
+
+  const orderedBrands = new Set(
+    state.areas[areaId].purchases.map((purchase) => purchase.brand || purchase.category || defaultBrands[0])
+  );
+
+  return state.brands.filter((brand) => getBrandForecast(brand, areaId) > 0 || orderedBrands.has(brand));
 }
 
 function enrichPurchases(areaId) {
@@ -855,6 +889,7 @@ function unlockApp() {
   appShell.hidden = false;
   floatingExportButton.hidden = false;
   openOrderFormButton.hidden = false;
+  openBrandFormButton.hidden = true;
   render();
 }
 
